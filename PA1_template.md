@@ -8,9 +8,7 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 The data for this assignment can be downloaded from the course web site:
 [Activity Monitoring Data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip)
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 The variables included in this dataset are:
 
@@ -25,7 +23,8 @@ Analysis
 
 The following code downloads the zip file if not present in the working directory and unzips it.
 
-```{r echo=TRUE}
+
+```r
 filename <- "activity.zip"
 #Checks if a file called Courseproject.zip exists in the current working directory
 if (!file.exists(filename)){
@@ -40,7 +39,8 @@ if (!file.exists("activity.csv")) {
 
 Loading the libraries to be used:
 
-```{r echo=TRUE}
+
+```r
 library(dplyr)
 library(ggplot2)
 library(knitr)
@@ -48,41 +48,71 @@ library(knitr)
 
 Reading the data from the csv file:
 
-```{r echo=TRUE}
+
+```r
 activitydata<-read.csv("activity.csv",sep=",")
 ```
 
 Finding mean total number of steps taken per day, ignoring NA values and plotting it on a histogram.
 
-```{r echo=TRUE}
+
+```r
 stepsperday<-summarise(group_by(activitydata,date),steps=sum(steps))
 qplot(stepsperday$steps,bins=20,main="Histogram of total steps per day",xlab = "Steps",ylab = "frequency")
 ```
 
+```
+## Warning: Removed 8 rows containing non-finite values
+## (stat_bin).
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png)
+
 Now calculating the mean and median of the number of steps taken per day.
 
-```{r echo=TRUE}
+
+```r
 mean(stepsperday$steps,na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(stepsperday$steps,na.rm = TRUE)
+```
+
+```
+## [1] 10765
 ```
 
 Now calculating and plotting average daily pattern.
 
-```{r echo=TRUE}
+
+```r
 meandailyactivity<-summarise(group_by(activitydata,interval),steps=mean(steps,na.rm = TRUE))
 plot(meandailyactivity$interval,meandailyactivity$steps,type = "l",col="blue",main = "average daily activity pattern",xlab = "Interval",ylab = "Steps")
 ```
 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png)
+
 Now to input missing values, first calculating the number of NA values;
 
-```{r echo=TRUE}
+
+```r
 missingvalues<-sum(is.na(activitydata$steps))
 missingvalues
 ```
 
+```
+## [1] 2304
+```
+
 Now inputting missing values
 
-```{r echo=TRUE}
+
+```r
 impdata<-activitydata
 for(i in 1:nrow(impdata)){
   if (is.na(impdata$steps[i])){
@@ -93,22 +123,42 @@ for(i in 1:nrow(impdata)){
 
 Now confirming that new data set called impdata doesnt have NA values
 
-```{r echo=TRUE}
+
+```r
 sum(is.na(impdata))
+```
+
+```
+## [1] 0
 ```
 
 NOw plotting histogram of the total number of steps taken each day
 
-```{r echo=TRUE}
+
+```r
 stepsperday2<-summarise(group_by(impdata,date),steps=sum(steps))
 qplot(stepsperday2$steps,bins=20,main="Histogram of total steps per day",xlab = "Steps",ylab = "frequency")
 ```
 
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png)
+
 Now the new mean and median after imputing NA values are;
 
-```{r echo=TRUE}
+
+```r
 mean(stepsperday2$steps,na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(stepsperday2$steps,na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
 ```
 
 Now confirming that the mean and median values before and after imputing the data do differ slightly
@@ -131,7 +181,8 @@ Now finding differences in activity patterns between weekdays and weekends
 
 First creating a new column in impdata called weekdays which says if the date on which the data was recorded was a weekday or a weekend
 
-```{r echo=TRUE}
+
+```r
 weekdaysvector<-c("Monday","Tuesday","Wednesday","Thursday","Friday")
 datevar<-as.Date(impdata$date)
 weekdaysempty<-vector()
@@ -147,24 +198,34 @@ impdata$weekdays<-weekdaysempty
 
 Now creating subsets of impdata for weekdays and weekends
 
-```{r echo=TRUE}
+
+```r
 weekdayset<-subset(impdata,impdata$weekdays=="weekday")
 weekendset<-subset(impdata,impdata$weekdays=="weekend")
 ```
 
 Now finding mean daily activities for weekdays and weekends
 
-```{r echo=TRUE}
+
+```r
 meanweekday<-summarise(group_by(weekdayset,interval),steps=mean(steps,na.rm = TRUE))
 meanweekend<-summarise(group_by(weekendset,interval),steps=mean(steps,na.rm = TRUE))
 ```
 
 Now Plotting the mean daily activities for weekdays and weekends
 
-```{r echo=TRUE}
+
+```r
 plot(meanweekend$interval,meanweekend$steps,type = "l",col="green",xlab = "Interval",ylab = "Steps",main="weekend")
+```
+
+![plot of chunk unnamed-chunk-15](figure/unnamed-chunk-15-1.png)
+
+```r
 plot(meanweekday$interval,meanweekday$steps,type = "l",col="blue",main = "weekday",xlab = "Interval",ylab = "Steps")
 ```
+
+![plot of chunk unnamed-chunk-15](figure/unnamed-chunk-15-2.png)
 
 We can see at the graph above that activity on the weekday has the greatest peak from all steps intervals. But, we can see too that weekends activities has more peaks over a hundred than weekday. This could be due to the fact that activities on weekdays mostly follow a work related routine, where we find some more intensity activity in little a free time that the employ can made some sport. In the other hand, at weekend we can see better distribution of effort along the time.
 
