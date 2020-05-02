@@ -23,11 +23,10 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 Analysis
 ============
 
-The following code downloads the zip file if not present in the working directory and unzips it.
+**The following code downloads the zip file if it is not present in the working directory and unzips it.**
 
 ```{r echo=TRUE}
 filename <- "activity.zip"
-#Checks if a file called Courseproject.zip exists in the current working directory
 if (!file.exists(filename)){
   url<-"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
   download.file(url, filename, method="curl")
@@ -38,49 +37,57 @@ if (!file.exists("activity.csv")) {
 }
 ```
 
-Loading the libraries to be used:
+**Loading the libraries to be used:**
 
 ```{r echo=TRUE}
 library(dplyr)
 library(ggplot2)
 library(knitr)
+library(lattice)
 ```
 
-Reading the data from the csv file:
+**Reading the data from the csv file:**
 
 ```{r echo=TRUE}
 activitydata<-read.csv("activity.csv",sep=",")
 ```
 
-Finding mean total number of steps taken per day, ignoring NA values and plotting it on a histogram.
+**Finding mean total number of steps taken per day, ignoring NA values and plotting it on a histogram.**
 
 ```{r echo=TRUE}
 stepsperday<-summarise(group_by(activitydata,date),steps=sum(steps))
 qplot(stepsperday$steps,bins=20,main="Histogram of total steps per day",xlab = "Steps",ylab = "frequency")
 ```
 
-Now calculating the mean and median of the number of steps taken per day.
+**Calculating the mean and median of the number of steps taken per day.**
 
 ```{r echo=TRUE}
 mean(stepsperday$steps,na.rm = TRUE)
 median(stepsperday$steps,na.rm = TRUE)
 ```
 
-Now calculating and plotting average daily pattern.
+**Calculating and plotting average daily pattern.**
 
 ```{r echo=TRUE}
 meandailyactivity<-summarise(group_by(activitydata,interval),steps=mean(steps,na.rm = TRUE))
 plot(meandailyactivity$interval,meandailyactivity$steps,type = "l",col="blue",main = "average daily activity pattern",xlab = "Interval",ylab = "Steps")
 ```
 
-Now to input missing values, first calculating the number of NA values;
+**5-minute interval containing the maximum number of steps (averaged across all days)**
+
+```{r echo=TRUE}
+meandailyactivity[which.max(meandailyactivity$steps),]$interval
+```
+
+**Now to input missing values, first calculating the number of NA values;**
 
 ```{r echo=TRUE}
 missingvalues<-sum(is.na(activitydata$steps))
 missingvalues
 ```
 
-Now inputting missing values
+**Inputting missing values by using mean for that 5 minute interval**
+
 
 ```{r echo=TRUE}
 impdata<-activitydata
@@ -91,27 +98,27 @@ for(i in 1:nrow(impdata)){
 }
 ```
 
-Now confirming that new data set called impdata doesnt have NA values
+**Now confirming that new data set called impdata doesnt have NA values**
 
 ```{r echo=TRUE}
 sum(is.na(impdata))
 ```
 
-NOw plotting histogram of the total number of steps taken each day
+**Now plotting histogram of the total number of steps taken each day after imputing missing data**
 
 ```{r echo=TRUE}
 stepsperday2<-summarise(group_by(impdata,date),steps=sum(steps))
-qplot(stepsperday2$steps,bins=20,main="Histogram of total steps per day",xlab = "Steps",ylab = "frequency")
+qplot(stepsperday2$steps,bins=20,main="Histogram of total steps per day after imputing missing data",xlab = "Steps",ylab = "frequency")
 ```
 
-Now the new mean and median after imputing NA values are;
+**Now the new mean and median after imputing NA values are;**
 
 ```{r echo=TRUE}
 mean(stepsperday2$steps,na.rm = TRUE)
 median(stepsperday2$steps,na.rm = TRUE)
 ```
 
-Now confirming that the mean and median values before and after imputing the data do differ slightly
+**Now confirming that the mean and median values before and after imputing the data do differ slightly**
 
 Before filling the data
 
@@ -127,7 +134,7 @@ Median: 10766.189
 
 We see that the values after filling the data mean and median are equal.
 
-Now finding differences in activity patterns between weekdays and weekends
+**Now finding differences in activity patterns between weekdays and weekends**
 
 First creating a new column in impdata called weekdays which says if the date on which the data was recorded was a weekday or a weekend
 
@@ -145,23 +152,24 @@ for(i in 1:length(datevar)){
 impdata$weekdays<-weekdaysempty
 ```
 
-Now creating subsets of impdata for weekdays and weekends
+**Now creating subsets of impdata for weekdays and weekends**
 
 ```{r echo=TRUE}
 weekdayset<-subset(impdata,impdata$weekdays=="weekday")
 weekendset<-subset(impdata,impdata$weekdays=="weekend")
 ```
 
-Now finding mean daily activities for weekdays and weekends
+**Now finding mean daily activities for weekdays and weekends**
 
 ```{r echo=TRUE}
 meanweekday<-summarise(group_by(weekdayset,interval),steps=mean(steps,na.rm = TRUE))
 meanweekend<-summarise(group_by(weekendset,interval),steps=mean(steps,na.rm = TRUE))
 ```
 
-Now Plotting the mean daily activities for weekdays and weekends
+**Now Plotting the mean daily activities for weekdays and weekends**
 
 ```{r echo=TRUE}
+par(mfrow=c(2,1))
 plot(meanweekend$interval,meanweekend$steps,type = "l",col="green",xlab = "Interval",ylab = "Steps",main="weekend")
 plot(meanweekday$interval,meanweekday$steps,type = "l",col="blue",main = "weekday",xlab = "Interval",ylab = "Steps")
 ```
